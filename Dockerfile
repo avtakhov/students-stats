@@ -1,21 +1,22 @@
-FROM python:3.12-slim AS base
+FROM python:3.12-slim AS app
 
-# базовые переменные окружения
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    UV_LINK_MODE=copy \
-    PATH="/root/.local/bin:${PATH}"
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl ca-certificates git \
+ && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
- && rm -rf /var/lib/apt/lists/* \
- && curl -LsSf https://astral.sh/uv/install.sh | sh -s -- -y
+RUN curl -LsSf https://astral.sh/uv/install.sh \
+    | env UV_INSTALL_DIR=/usr/local/bin UV_NO_MODIFY_PATH=1 sh \
+ && uv --version
 
 WORKDIR /app
+COPY pyproject.toml uv.lock ./
 
-COPY pyproject.toml uv.lock* ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen
 
-RUN uv pip install --system .
-COPY . /app
+ENV PATH="/app/.venv/bin:${PATH}"
+
+COPY . .
 
 RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
