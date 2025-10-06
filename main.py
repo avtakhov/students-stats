@@ -20,8 +20,8 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     try:
         yield
     finally:
-        await engine.dispose()
         scheduler.shutdown(wait=True)
+        await engine.dispose()
 
 
 app = FastAPI(lifespan=lifespan)
