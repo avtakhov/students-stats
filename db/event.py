@@ -52,4 +52,5 @@ class EventDB(Base):
         Index("idx_events_event_type", "event_type"),
         Index("idx_events_timestamp", "timestamp"),
         Index("idx_events_event_type_timestamp", "event_type", "timestamp"),
+        Index("idx_events_type_ts_id", "event_type", "timestamp", "id"),
     )
